@@ -25,57 +25,12 @@ const emptyArray = (width, height) => {
     return arr
 }
 
-const lerp = (v1, v2, alpha) => v1 * (1 - alpha) + alpha * v2
-
-const genWhiteNoise = (width, height) => {
-    let i = 0, j = 0
-    const noise = emptyArray(width, height)
-    while (i < width) {
-        while (j < height) {
-            noise[i][j] = Math.random()
-            j++
-        }
-        j = 0
-        i++
-    }
-    j = i = 0
-    while (j < height) {
-        while (i < width) {
-            const s1 = noise[i][j]
-            , s2 = noise[Math.pow(i, 2) % width][j]
-            noise[i][j] = lerp(s1, s2, 0.4)
-            i++
-        }
-        i = 0
-        j++
-    }
-    return noise
-}
-
-const genSmoothNoise = (baseNoise, octave) => {
-    const width = baseNoise[0].length - 1
-    ,     height = baseNoise.length - 1
-    ,     smoothNoise = emptyArray(width, height)
-    ,     samplePeriod = 1 << octave
-    ,     sampleFreq = 1 / samplePeriod
-
-    for (let i = 0; i < width; i++) {
-        let sample_i0 = (i / samplePeriod) * samplePeriod
-        ,   sample_i1 = (sample_i0 + samplePeriod) % width
-        ,   horiz_blend = (i - sample_i0) * sampleFreq
-
-        for (let j = 0; j < height; j++) {
-            let sample_j0 = (j / samplePeriod) * samplePeriod
-            ,   sample_j1 = (sample_j0 + samplePeriod) % height
-            ,   vert_blend = (j - sample_j0) * sampleFreq
-            ,   top = lerp(baseNoise[sample_i0][sample_j0],
-                           baseNoise[sample_i1][sample_j1], horiz_blend)
-            ,   bottom = lerp(baseNoise[sample_i0][sample_j1],
-                               baseNoise[sample_i1][sample_j1], horiz_blend)
-            smoothNoise[i][j] = lerp(top, bottom, vert_blend)
-        }
-    }
-    return smoothNoise
+const randPointWithinR = r => {
+    let a = Math.random()
+    ,   b = Math.random()
+    if (b < a) [a, b] = [b, a]
+    return [Math.floor(b * r * Math.cos(2 * Math.PI * a / b)),
+            Math.floor(b * r * Math.sin(2 * Math.PI * a / b))]
 }
 
 const generateIsland = (width, height) => {
@@ -84,11 +39,33 @@ const generateIsland = (width, height) => {
     let i = 0, j = 0
     while (i < width) {
         while (j < height) {
-            island.tiles.set([i, j], choose([tiles.WATER, tiles.GRASS]))
+            island.tiles.set([i, j], tiles.WATER)
             j++
         }
         j = 0
         i++
+    }
+
+    const heightMap = emptyArray(width, height)
+    const [centerX, centerY] = [Math.floor(width / 2),
+                                Math.floor(height / 2)]
+    for (let n = 0; n < randRange(1, 4); n++) {
+        const [rx, ry] = randPointWithinR(width / 3)
+        heightMap[centerX + rx][centerY + ry] = 1.0
+    }
+
+    // convert heightmap to tiles
+    for (let j = 0; j < heightMap.length; j++) {
+        for (let i = 0; i < heightMap[0].length; i++) {
+            switch (true) {
+            case heightMap[j][i] <= 0:
+                island.tiles.set([i, j], tiles.WATER)
+                break;
+            case heightMap[j][i] > 0:
+                island.tiles.set([i, j], tiles.GRASS)
+                break;
+            }
+        }
     }
 }
 
