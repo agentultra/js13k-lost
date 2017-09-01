@@ -19,6 +19,8 @@ const randRange = (min, max) =>
 const choose = list =>
       list[randRange(0, list.length)]
 
+const lerp = (v0, v1, t) => (1 - t) * v0 + t * v1
+
 // world gen
 
 const emptyArray = (width, height, fill=0) => {
@@ -77,6 +79,38 @@ const generateIsland = (width, height) => {
               }
           )
 
+    const smoothHeightMap = (map, octave) => {
+        const width = map[0].length
+        ,     height = map.length
+        ,     smoothMap = emptyArray(width, height)
+        ,     samplePeriod = 1 << octave
+        ,     sampleFreq = 1 / samplePeriod
+
+        for (let i = 0; i < width; i++) {
+            let sample_i0 = (i / samplePeriod) * samplePeriod
+            ,   sample_i1 = (sample_i0 + samplePeriod) % width
+            ,   h_blend = (i - sample_i0) * sampleFreq
+
+            for (let j = 0; j < height; j++) {
+                let sample_j0 = (j / samplePeriod) * samplePeriod
+                ,   sample_j1 = (sample_j0 + samplePeriod) % height
+                ,   v_blend = (j - sample_j0) * sampleFreq
+                ,   top = lerp(
+                    map[sample_j0][sample_i0],
+                    map[sample_j0][sample_i1],
+                    h_blend
+                )
+                ,   bottom = lerp(
+                    map[sample_j1][sample_i0],
+                    map[sample_j1][sample_i1],
+                    h_blend
+                )
+                smoothMap[j][i] = lerp(top, bottom, v_blend)
+            }
+        }
+        return smoothMap
+    }
+
     island.width = width
     island.height = height
     let i = 0, j = 0
@@ -100,7 +134,7 @@ const generateIsland = (width, height) => {
     }
     // simulate eruptions / lava!
     for (const {x, y, eruptions} of volcanoes) {
-        heightMap[y][x] = 1.0
+        heightMap[y][x] = 100.0
         for (let n = 0; n < eruptions; n++) {
             let power = Math.random(0.3, 0.6)
             ,   eruptionSite = choose(neighbours(x, y))
@@ -117,11 +151,12 @@ const generateIsland = (width, height) => {
             }
         }
     }
+    const finalHeightMap = smoothHeightMap(heightMap, 64)
 
     // convert heightmap to tiles
-    for (let j = 0; j < heightMap.length; j++) {
-        for (let i = 0; i < heightMap[0].length; i++) {
-            const h = heightMap[j][i]
+    for (let j = 0; j < finalHeightMap.length; j++) {
+        for (let i = 0; i < finalHeightMap[0].length; i++) {
+            const h = finalHeightMap[j][i]
             switch (true) {
             case h > -0.3 && h <= 0:
                 island.tiles.set([i, j], tiles.WATER)
