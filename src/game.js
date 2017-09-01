@@ -132,13 +132,13 @@ const generateIsland = (width, height) => {
     for (let n = 0; n < randRange(6, 8); n++) {
         const [rx, ry] = randPointWithinR(width / 4)
         volcanoes.push(Volcano([centerX + rx, centerY + ry],
-                               randRange(24, 64)))
+                               randRange(32, 64)))
     }
     // simulate eruptions / lava!
     for (const {x, y, eruptions} of volcanoes) {
         heightMap[y][x] = 100.0
         for (let n = 0; n < eruptions; n++) {
-            let power = Math.random(0.3, 0.6)
+            let power = Math.random(0.6, 0.7)
             ,   eruptionSite = choose(neighbours(x, y))
             ,   [eruptionX, eruptionY, dir] = eruptionSite
 
@@ -170,16 +170,16 @@ const generateIsland = (width, height) => {
             case h > 0.3 && h <= 2:
                 island.tiles.set([i, j], tiles.GRASS)
                 break;
-            case h > 2 && h <= 6:
+            case h > 2 && h <= 5:
                 island.tiles.set([i, j], tiles.FOREST)
                 break;
-            case h > 6 && h <= 12:
+            case h > 5 && h <= 10:
                 island.tiles.set([i, j], tiles.HILLS)
                 break;
-            case h > 12 && h <= 17:
+            case h > 10 && h <= 15:
                 island.tiles.set([i, j], tiles.MOUNTAIN)
                 break;
-            case h > 17:
+            case h > 15:
                 island.tiles.set([i, j], tiles.SNOW)
                 break;
             }
