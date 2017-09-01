@@ -2,7 +2,11 @@ let canvas, stage
 const tileWidth = 10, tileHeight = 10
 const tiles = {
     GRASS: 0,
-    WATER: 1
+    WATER: 1,
+    SAND: 2,
+    DEEPWATER: 3,
+    FOREST: 4,
+    MOUNTAIN: 5
 }
 let island = {tiles: new Map(), width: 0, height: 0}
 let running = true
@@ -17,10 +21,10 @@ const choose = list =>
 
 // world gen
 
-const emptyArray = (width, height) => {
+const emptyArray = (width, height, fill=0) => {
     const arr = []
-    for (let j = 0; j <= height; j++) {
-        arr.push(Array(width).fill(0))
+    for (let j = 0; j < height; j++) {
+        arr.push(Array(width).fill(fill))
     }
     return arr
 }
@@ -68,8 +72,8 @@ const generateIsland = (width, height) => {
           directions[dir].map(
               ([dx, dy]) => {
                   const [nX, nY] = [x + dx, y + dy]
-                  return [nX < 0 ? 0 : nX % mapW,
-                          nY < 0 ? 0 : nY % mapH]
+                  return [nX < 0 ? 0 : nX >= mapW ? mapW - 1 : nX,
+                          nY < 0 ? 0 : nY >= mapH ? mapH - 1 : nY]
               }
           )
 
@@ -78,21 +82,21 @@ const generateIsland = (width, height) => {
     let i = 0, j = 0
     while (i < width) {
         while (j < height) {
-            island.tiles.set([i, j], tiles.WATER)
+            island.tiles.set([i, j], tiles.DEEPWATER)
             j++
         }
         j = 0
         i++
     }
 
-    const heightMap = emptyArray(width, height)
+    const heightMap = emptyArray(width, height, -0.3)
     const [centerX, centerY] = [Math.floor(width / 2),
                                 Math.floor(height / 2)]
     const volcanoes = []
-    for (let n = 0; n < randRange(1, 4); n++) {
-        const [rx, ry] = randPointWithinR(width / 3)
+    for (let n = 0; n < randRange(2, 4); n++) {
+        const [rx, ry] = randPointWithinR(width / 4)
         volcanoes.push(Volcano([centerX + rx, centerY + ry],
-                               randRange(12, 50)))
+                               randRange(32, 75)))
     }
     // simulate eruptions / lava!
     for (const {x, y, eruptions} of volcanoes) {
@@ -117,12 +121,22 @@ const generateIsland = (width, height) => {
     // convert heightmap to tiles
     for (let j = 0; j < heightMap.length; j++) {
         for (let i = 0; i < heightMap[0].length; i++) {
+            const h = heightMap[j][i]
             switch (true) {
-            case heightMap[j][i] <= 0:
+            case h > -0.3 && h <= 0:
                 island.tiles.set([i, j], tiles.WATER)
                 break;
-            case heightMap[j][i] > 0:
+            case h > 0 && h <= 0.3:
+                island.tiles.set([i, j], tiles.SAND)
+                break;
+            case h > 0.3 && h <= 2:
                 island.tiles.set([i, j], tiles.GRASS)
+                break;
+            case h > 2 && h <= 6:
+                island.tiles.set([i, j], tiles.FOREST)
+                break;
+            case h > 6:
+                island.tiles.set([i, j], tiles.MOUNTAIN)
                 break;
             }
         }
@@ -133,10 +147,22 @@ const renderIsland = (screenX, screenY) => {
     for (const [[x, y], tile] of island.tiles.entries()) {
         switch (tile) {
         case tiles.GRASS:
-            stage.fillStyle = 'green'
+            stage.fillStyle = 'forestgreen'
             break;
         case tiles.WATER:
             stage.fillStyle = 'deepskyblue'
+            break;
+        case tiles.SAND:
+            stage.fillStyle = 'Beige'
+            break;
+        case tiles.DEEPWATER:
+            stage.fillStyle = 'dodgerblue'
+            break;
+        case tiles.FOREST:
+            stage.fillStyle = 'green'
+            break;
+        case tiles.MOUNTAIN:
+            stage.fillStyle = 'grey'
             break;
         }
         stage.fillRect((x * tileWidth) + screenX,
