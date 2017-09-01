@@ -34,6 +34,45 @@ const randPointWithinR = r => {
 }
 
 const generateIsland = (width, height) => {
+
+    const Volcano = ([x, y], strength) => ({
+        eruptions: randRange(strength, 2 * strength),
+        x,
+        y
+    })
+
+    const directions = {
+        N: [[-1, -1], [0, -1], [1, -1]],
+        NE: [[0, -1], [1, -1], [1, 0]],
+        E: [[1, -1], [1, 0], [1, 1]],
+        SE: [[1, 0], [1, 1], [0, 1]],
+        S: [[1, 1], [0, 1], [-1, 1]],
+        SW: [[0, 1], [-1, 1], [-1, 0]],
+        W: [[-1, 1], [-1, 0], [-1, -1]],
+        NW: [[-1, 0], [-1, -1], [0, -1]]
+    }
+
+    const neighbours = (x, y) =>
+          [
+              [x, y - 1, 'N'],
+              [x + 1, y - 1, 'NE'],
+              [x + 1, y, 'E'],
+              [x + 1, y + 1, 'SE'],
+              [x, y + 1, 'S'],
+              [x - 1, y + 1, 'SW'],
+              [x - 1, y, 'W'],
+              [x - 1, y - 1, 'NW'],
+          ]
+
+    const eruptionFrontier = (x, y, dir, mapW, mapH) =>
+          directions[dir].map(
+              ([dx, dy]) => {
+                  const [nX, nY] = [x + dx, y + dy]
+                  return [nX < 0 ? 0 : nX % mapW,
+                          nY < 0 ? 0 : nY % mapH]
+              }
+          )
+
     island.width = width
     island.height = height
     let i = 0, j = 0
@@ -49,9 +88,30 @@ const generateIsland = (width, height) => {
     const heightMap = emptyArray(width, height)
     const [centerX, centerY] = [Math.floor(width / 2),
                                 Math.floor(height / 2)]
+    const volcanoes = []
     for (let n = 0; n < randRange(1, 4); n++) {
         const [rx, ry] = randPointWithinR(width / 3)
-        heightMap[centerX + rx][centerY + ry] = 1.0
+        volcanoes.push(Volcano([centerX + rx, centerY + ry],
+                               randRange(12, 50)))
+    }
+    // simulate eruptions / lava!
+    for (const {x, y, eruptions} of volcanoes) {
+        heightMap[y][x] = 1.0
+        for (let n = 0; n < eruptions; n++) {
+            let power = Math.random(0.3, 0.6)
+            ,   eruptionSite = choose(neighbours(x, y))
+            ,   [eruptionX, eruptionY, dir] = eruptionSite
+
+            while (power > 0) {
+                heightMap[eruptionY][eruptionX] += power
+                const frontier = eruptionFrontier(eruptionX, eruptionY, dir,
+                                                  width, height)
+                const newFrontier = choose(frontier)
+                eruptionX = newFrontier[0]
+                eruptionY = newFrontier[1]
+                power -= 0.1
+            }
+        }
     }
 
     // convert heightmap to tiles
