@@ -6,7 +6,9 @@ const tiles = {
     SAND: 2,
     DEEPWATER: 3,
     FOREST: 4,
-    MOUNTAIN: 5
+    HILLS: 5,
+    MOUNTAIN: 6,
+    SNOW: 7
 }
 let island = {tiles: new Map(), width: 0, height: 0}
 let running = true
@@ -127,10 +129,10 @@ const generateIsland = (width, height) => {
     const [centerX, centerY] = [Math.floor(width / 2),
                                 Math.floor(height / 2)]
     const volcanoes = []
-    for (let n = 0; n < randRange(2, 4); n++) {
+    for (let n = 0; n < randRange(6, 8); n++) {
         const [rx, ry] = randPointWithinR(width / 4)
         volcanoes.push(Volcano([centerX + rx, centerY + ry],
-                               randRange(32, 75)))
+                               randRange(24, 64)))
     }
     // simulate eruptions / lava!
     for (const {x, y, eruptions} of volcanoes) {
@@ -144,6 +146,7 @@ const generateIsland = (width, height) => {
                 heightMap[eruptionY][eruptionX] += power
                 const frontier = eruptionFrontier(eruptionX, eruptionY, dir,
                                                   width, height)
+                frontier.forEach(([fX, fY]) => heightMap[fY][fX] += 0.2)
                 const newFrontier = choose(frontier)
                 eruptionX = newFrontier[0]
                 eruptionY = newFrontier[1]
@@ -170,8 +173,14 @@ const generateIsland = (width, height) => {
             case h > 2 && h <= 6:
                 island.tiles.set([i, j], tiles.FOREST)
                 break;
-            case h > 6:
+            case h > 6 && h <= 12:
+                island.tiles.set([i, j], tiles.HILLS)
+                break;
+            case h > 12 && h <= 17:
                 island.tiles.set([i, j], tiles.MOUNTAIN)
+                break;
+            case h > 17:
+                island.tiles.set([i, j], tiles.SNOW)
                 break;
             }
         }
@@ -196,9 +205,14 @@ const renderIsland = (screenX, screenY) => {
         case tiles.FOREST:
             stage.fillStyle = 'green'
             break;
-        case tiles.MOUNTAIN:
+        case tiles.HILLS:
             stage.fillStyle = 'grey'
             break;
+        case tiles.MOUNTAIN:
+            stage.fillStyle = 'darkgrey'
+            break;
+        case tiles.SNOW:
+            stage.fillStyle = 'Azure'
         }
         stage.fillRect((x * tileWidth) + screenX,
                        (y * tileHeight) + screenY,
@@ -212,7 +226,7 @@ const initialize = () => {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     stage = canvas.getContext('2d')
-    generateIsland(30, 30)
+    generateIsland(50, 50)
 }
 
 const update = () => {
