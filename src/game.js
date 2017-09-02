@@ -10,7 +10,7 @@ const tiles = {
     MOUNTAIN: 6,
     SNOW: 7
 }
-let island = {tiles: new Map(), width: 0, height: 0}
+let island = {tiles: [], width: 0, height: 0}
 let running = true
 
 // utilities
@@ -115,15 +115,7 @@ const generateIsland = (width, height) => {
 
     island.width = width
     island.height = height
-    let i = 0, j = 0
-    while (i < width) {
-        while (j < height) {
-            island.tiles.set([i, j], tiles.DEEPWATER)
-            j++
-        }
-        j = 0
-        i++
-    }
+    island.tiles = emptyArray(width, height, tiles.DEEPWATER)
 
     const heightMap = emptyArray(width, height, -0.3)
     const [centerX, centerY] = [Math.floor(width / 2),
@@ -162,25 +154,25 @@ const generateIsland = (width, height) => {
             const h = finalHeightMap[j][i]
             switch (true) {
             case h > -0.3 && h <= 0:
-                island.tiles.set([i, j], tiles.WATER)
+                island.tiles[j][i] = tiles.WATER
                 break;
             case h > 0 && h <= 0.3:
-                island.tiles.set([i, j], tiles.SAND)
+                island.tiles[j][i] = tiles.SAND
                 break;
             case h > 0.3 && h <= 2:
-                island.tiles.set([i, j], tiles.GRASS)
+                island.tiles[j][i] = tiles.GRASS
                 break;
             case h > 2 && h <= 5:
-                island.tiles.set([i, j], tiles.FOREST)
+                island.tiles[j][i] = tiles.FOREST
                 break;
             case h > 5 && h <= 10:
-                island.tiles.set([i, j], tiles.HILLS)
+                island.tiles[j][i] = tiles.HILLS
                 break;
             case h > 10 && h <= 15:
-                island.tiles.set([i, j], tiles.MOUNTAIN)
+                island.tiles[j][i] = tiles.MOUNTAIN
                 break;
             case h > 15:
-                island.tiles.set([i, j], tiles.SNOW)
+                island.tiles[j][i] = tiles.SNOW
                 break;
             }
         }
@@ -188,35 +180,38 @@ const generateIsland = (width, height) => {
 }
 
 const renderIsland = (screenX, screenY) => {
-    for (const [[x, y], tile] of island.tiles.entries()) {
-        switch (tile) {
-        case tiles.GRASS:
-            stage.fillStyle = 'forestgreen'
-            break;
-        case tiles.WATER:
-            stage.fillStyle = 'deepskyblue'
-            break;
-        case tiles.SAND:
-            stage.fillStyle = 'Beige'
-            break;
-        case tiles.DEEPWATER:
-            stage.fillStyle = 'dodgerblue'
-            break;
-        case tiles.FOREST:
-            stage.fillStyle = 'green'
-            break;
-        case tiles.HILLS:
-            stage.fillStyle = 'grey'
-            break;
-        case tiles.MOUNTAIN:
-            stage.fillStyle = 'darkgrey'
-            break;
-        case tiles.SNOW:
-            stage.fillStyle = 'Azure'
+    for (let i = 0; i < island.width; i++) {
+        for (let j = 0; j < island.height; j++) {
+            const tile = island.tiles[j][i]
+            switch (tile) {
+            case tiles.GRASS:
+                stage.fillStyle = 'forestgreen'
+                break;
+            case tiles.WATER:
+                stage.fillStyle = 'deepskyblue'
+                break;
+            case tiles.SAND:
+                stage.fillStyle = 'Beige'
+                break;
+            case tiles.DEEPWATER:
+                stage.fillStyle = 'dodgerblue'
+                break;
+            case tiles.FOREST:
+                stage.fillStyle = 'green'
+                break;
+            case tiles.HILLS:
+                stage.fillStyle = 'grey'
+                break;
+            case tiles.MOUNTAIN:
+                stage.fillStyle = 'darkgrey'
+                break;
+            case tiles.SNOW:
+                stage.fillStyle = 'Azure'
+            }
+            stage.fillRect((i * tileWidth) + screenX,
+                           (j * tileHeight) + screenY,
+                           tileWidth, tileHeight)
         }
-        stage.fillRect((x * tileWidth) + screenX,
-                       (y * tileHeight) + screenY,
-                       tileWidth, tileHeight)
     }
 }
 
