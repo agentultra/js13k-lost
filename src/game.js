@@ -10,7 +10,8 @@ const tiles = {
     MOUNTAIN: 6,
     SNOW: 7
 }
-let island = {tiles: [], width: 0, height: 0}
+const island = {tiles: [], width: 0, height: 0}
+const camera = {x: 0, y: 0, w: 20, h: 20} // in tiles
 let running = true
 
 // utilities
@@ -179,9 +180,34 @@ const generateIsland = (width, height) => {
     }
 }
 
+// event handling
+
+document.addEventListener('keydown', ev => {
+    switch (ev.key) {
+    case 'w':
+        if (camera.y > 0)
+            camera.y -= 1
+        break;
+    case 's':
+        if (camera.y + camera.h < island.height)
+            camera.y += 1
+        break;
+    case 'a':
+        if (camera.x > 0)
+            camera.x -= 1
+        break;
+    case 'd':
+        if (camera.x + camera.w < island.width)
+            camera.x += 1
+        break;
+    }
+})
+
+// rendering
+
 const renderIsland = (screenX, screenY) => {
-    for (let i = 0; i < island.width; i++) {
-        for (let j = 0; j < island.height; j++) {
+    for (let i = camera.x; i < camera.x + camera.w; i++) {
+        for (let j = camera.y; j < camera.y + camera.h; j++) {
             const tile = island.tiles[j][i]
             switch (tile) {
             case tiles.GRASS:
@@ -224,7 +250,7 @@ const initialize = () => {
     generateIsland(50, 50)
 }
 
-const update = () => {
+const update = dt => {
 }
 
 const render = () => {
@@ -241,7 +267,7 @@ const loop = now => {
         window.requestAnimationFrame(loop, now)
         let dt = now - lastFrame
         if (dt < 160) {
-            update()
+            update(dt)
         }
         render()
         lastFrame = now
