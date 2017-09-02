@@ -11,7 +11,7 @@ const tiles = {
     SNOW: 7
 }
 const island = {tiles: [], width: 0, height: 0}
-const camera = {x: 0, y: 0, w: 20, h: 20} // in tiles
+const camera = {x: 0, y: 0, w: 30, h: 30} // in tiles
 let running = true
 
 // utilities
@@ -206,9 +206,9 @@ document.addEventListener('keydown', ev => {
 // rendering
 
 const renderIsland = (screenX, screenY) => {
-    for (let i = camera.x; i < camera.x + camera.w; i++) {
-        for (let j = camera.y; j < camera.y + camera.h; j++) {
-            const tile = island.tiles[j][i]
+    for (let i = 0; i < camera.w; i++) {
+        for (let j = 0; j < camera.h; j++) {
+            const tile = island.tiles[j + camera.y][i + camera.x]
             switch (tile) {
             case tiles.GRASS:
                 stage.fillStyle = 'forestgreen'
