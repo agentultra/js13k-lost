@@ -1,5 +1,5 @@
 let canvas, stage
-const tileWidth = 10, tileHeight = 10
+const tileWidth = 15, tileHeight = 15
 const tiles = {
     GRASS: 0,
     WATER: 1,
@@ -11,7 +11,7 @@ const tiles = {
     SNOW: 7
 }
 const island = {tiles: [], width: 0, height: 0}
-const camera = {x: 0, y: 0, w: 30, h: 30} // in tiles
+const camera = {x: 0, y: 0, w: 40, h: 40} // in tiles
 let running = true
 
 // utilities
@@ -123,7 +123,7 @@ const generateIsland = (width, height) => {
                                 Math.floor(height / 2)]
     const volcanoes = []
     for (let n = 0; n < randRange(6, 8); n++) {
-        const [rx, ry] = randPointWithinR(width / 4)
+        const [rx, ry] = randPointWithinR(width / 3.5)
         volcanoes.push(Volcano([centerX + rx, centerY + ry],
                                randRange(32, 64)))
     }
@@ -131,7 +131,7 @@ const generateIsland = (width, height) => {
     for (const {x, y, eruptions} of volcanoes) {
         heightMap[y][x] = 100.0
         for (let n = 0; n < eruptions; n++) {
-            let power = Math.random(0.6, 0.7)
+            let power = Math.random(0.6, 4.0)
             ,   eruptionSite = choose(neighbours(x, y))
             ,   [eruptionX, eruptionY, dir] = eruptionSite
 
@@ -247,7 +247,7 @@ const initialize = () => {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     stage = canvas.getContext('2d')
-    generateIsland(50, 50)
+    generateIsland(80, 80)
 }
 
 const update = dt => {
