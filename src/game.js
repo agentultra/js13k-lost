@@ -1,5 +1,5 @@
 let canvas, stage
-const tileWidth = 15, tileHeight = 15
+const tileWidth = 20, tileHeight = 20
 const tiles = {
     GRASS: 0,
     WATER: 1,
@@ -11,7 +11,8 @@ const tiles = {
     SNOW: 7
 }
 const island = {tiles: [], width: 0, height: 0}
-const camera = {x: 0, y: 0, w: 40, h: 40} // in tiles
+const camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
+const player = {x: 0, y: 0}
 let running = true
 
 // utilities
@@ -185,20 +186,22 @@ const generateIsland = (width, height) => {
 document.addEventListener('keydown', ev => {
     switch (ev.key) {
     case 'w':
-        if (camera.y > 0)
-            camera.y -= 1
+        if (player.y > 0)
+            player.y -= 1
         break;
     case 's':
-        if (camera.y + camera.h < island.height)
-            camera.y += 1
+        if (player.y < island.height)
+            player.y += 1
         break;
     case 'a':
-        if (camera.x > 0)
-            camera.x -= 1
+        if (player.x > 0)
+            player.x -= 1
         break;
     case 'd':
-        if (camera.x + camera.w < island.width)
+        if (player.x < island.width) {
+            player.x += 1
             camera.x += 1
+        }
         break;
     }
 })
@@ -257,6 +260,8 @@ const render = () => {
     stage.fillStyle = '#000'
     stage.fillRect(0, 0, window.innerWidth, window.innerHeight)
     renderIsland(75, 50)
+    stage.font = '16px serif'
+    stage.fillText('\uD83E\uDD13', (player.x * tileWidth) + 75, (player.y * tileHeight + 16) + 50)
 }
 
 // main
