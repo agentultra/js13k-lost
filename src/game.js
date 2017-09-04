@@ -25,6 +25,16 @@ const choose = list =>
 
 const lerp = (v0, v1, t) => (1 - t) * v0 + t * v1
 
+const within = (x1, y1, w, h, x2, y2) =>
+      (x1 <= x2 && x2 <= x1 + w) &&
+      (y1 <= y2 && y2 <= y1 + h)
+
+const outOfBounds = (x1, y1, w1, h1,
+                     x2, y2, w2, h2,
+                     x, y) =>
+      within(x1, y1, w1, h1, x, y) &&
+      !within(x2, y2, w2, h2, x, y)
+
 // world gen
 
 const emptyArray = (width, height, fill=0) => {
@@ -188,26 +198,31 @@ document.addEventListener('keydown', ev => {
     case 'w':
         if (player.y > 0)
             player.y -= 1
+        if (player.y < (camera.y + camera.b) && camera.y > 0)
+            camera.y -= 1
         break;
     case 's':
-        if (player.y < island.height)
+        if (player.y < island.height - 1)
             player.y += 1
+        if (player.y > (camera.y + camera.h) - camera.b - 1 && camera.y + camera.h < island.height)
+            camera.y += 1
         break;
     case 'a':
         if (player.x > 0)
             player.x -= 1
+        if (player.x < (camera.x + camera.b) && camera.x > 0)
+            camera.x -= 1
         break;
     case 'd':
-        if (player.x < island.width) {
+        if (player.x < island.width - 1)
             player.x += 1
+        if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
             camera.x += 1
-        }
         break;
     }
 })
 
 // rendering
-
 const renderIsland = (screenX, screenY) => {
     for (let i = 0; i < camera.w; i++) {
         for (let j = 0; j < camera.h; j++) {
@@ -251,6 +266,8 @@ const initialize = () => {
     canvas.height = window.innerHeight
     stage = canvas.getContext('2d')
     generateIsland(80, 80)
+    player.x = 8
+    player.y = 8
 }
 
 const update = dt => {
@@ -261,7 +278,9 @@ const render = () => {
     stage.fillRect(0, 0, window.innerWidth, window.innerHeight)
     renderIsland(75, 50)
     stage.font = '16px serif'
-    stage.fillText('\uD83E\uDD13', (player.x * tileWidth) + 75, (player.y * tileHeight + 16) + 50)
+    stage.fillText('\uD83E\uDD13',
+                   (player.x - camera.x) * tileWidth + 75,
+                   ((player.y - camera.y) * tileHeight + 50) + 17)
 }
 
 // main
