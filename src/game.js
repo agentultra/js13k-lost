@@ -12,7 +12,7 @@ const tiles = {
 }
 const island = {tiles: [], width: 0, height: 0}
 const camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
-const player = {x: 0, y: 0}
+let player;
 let running = true
 
 // utilities
@@ -35,8 +35,6 @@ const outOfBounds = (x1, y1, w1, h1,
       within(x1, y1, w1, h1, x, y) &&
       !within(x2, y2, w2, h2, x, y)
 
-// world gen
-
 const emptyArray = (width, height, fill=0) => {
     const arr = []
     for (let j = 0; j < height; j++) {
@@ -52,6 +50,8 @@ const randPointWithinR = r => {
     return [Math.floor(b * r * Math.cos(2 * Math.PI * a / b)),
             Math.floor(b * r * Math.sin(2 * Math.PI * a / b))]
 }
+
+// world gen
 
 const generateIsland = (width, height) => {
 
@@ -191,6 +191,21 @@ const generateIsland = (width, height) => {
     }
 }
 
+const initializePlayer = () => {
+    const sandTiles = []
+    for (let i = 0; i < island.width; i++) {
+        for (let j = 0; j < island.height; j++) {
+            if (island.tiles[j][i] === tiles.SAND)
+                sandTiles.push({x: i, y: j})
+        }
+    }
+    return choose(sandTiles)
+}
+
+const centerCameraOn = (x, y) => {
+    camera.x = x - (camera.w / 2)
+    camera.y = y - (camera.h / 2)
+}
 // event handling
 
 document.addEventListener('keydown', ev => {
@@ -266,8 +281,8 @@ const initialize = () => {
     canvas.height = window.innerHeight
     stage = canvas.getContext('2d')
     generateIsland(80, 80)
-    player.x = 8
-    player.y = 8
+    player = initializePlayer()
+    centerCameraOn(player.x, player.y)
 }
 
 const update = dt => {
