@@ -214,31 +214,49 @@ const centerCameraOn = (x, y) => {
     if (camera.y + camera.h > island.height)
         camera.y -= (camera.y + camera.h) - island.height
 }
+
+const canEnterTile = (x, y) => {
+    switch (island.tiles[y][x]) {
+    case tiles.DEEPWATER:
+        return false
+        break;
+    case tiles.SNOW:
+        return false
+        break;
+    default:
+        return true
+        break;
+    }
+}
 // event handling
 
 document.addEventListener('keydown', ev => {
     switch (ev.key) {
     case 'w':
         if (player.y > 0)
-            player.y -= 1
+            if (canEnterTile(player.x, player.y - 1))
+                player.y -= 1
         if (player.y < (camera.y + camera.b) && camera.y > 0)
             camera.y -= 1
         break;
     case 's':
         if (player.y < island.height - 1)
-            player.y += 1
+            if (canEnterTile(player.x, player.y + 1))
+                player.y += 1
         if (player.y > (camera.y + camera.h) - camera.b - 1 && camera.y + camera.h < island.height)
             camera.y += 1
         break;
     case 'a':
         if (player.x > 0)
-            player.x -= 1
+            if (canEnterTile(player.x - 1, player.y))
+                player.x -= 1
         if (player.x < (camera.x + camera.b) && camera.x > 0)
             camera.x -= 1
         break;
     case 'd':
         if (player.x < island.width - 1)
-            player.x += 1
+            if (canEnterTile(player.x + 1, player.y))
+                player.x += 1
         if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
             camera.x += 1
         break;
