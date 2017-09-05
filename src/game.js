@@ -203,8 +203,16 @@ const initializePlayer = () => {
 }
 
 const centerCameraOn = (x, y) => {
-    camera.x = x - (camera.w / 2)
-    camera.y = y - (camera.h / 2)
+    camera.x = Math.floor(x - (camera.w / 2))
+    camera.y = Math.floor(y - (camera.h / 2))
+    if (camera.x + camera.w > island.width)
+        camera.x -= (camera.x + camera.w) - island.width
+    if (camera.x < 0)
+        camera.x = 0
+    if (camera.y < 0)
+        camera.y = 0
+    if (camera.y + camera.h > island.height)
+        camera.y -= (camera.y + camera.h) - island.height
 }
 // event handling
 
