@@ -1,4 +1,8 @@
-let canvas, stage, player, running = true
+let canvas
+,   stage
+,   player
+,   running = true
+,   entities = []
 const tileWidth = 20, tileHeight = 20
 ,     tiles = {
     GRASS: 0,
@@ -10,9 +14,15 @@ const tileWidth = 20, tileHeight = 20
     MOUNTAIN: 6,
     SNOW: 7
 }
+,     animalStates = {
+    GRAZING: 0,
+    WANDERING: 1,
+    SLEEPING: 2,
+    FLEEING: 3,
+    AGRESSIVE: 4
+}
 ,     island = {tiles: [], width: 0, height: 0}
 ,     camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
-,     entities = []
 
 // utilities
 
@@ -225,18 +235,36 @@ const canEnterTile = entity => (x, y) => {
     return entity.t.includes(tile)
 }
 
-const updateEntities = () => {
-    for (const entity of entities) {
-        const dx = choose([-1, 0, 1])
-        ,     dy = choose([-1, 0, 1])
-        ,     x = entity.x + dx
-        ,     y = entity.y + dy
-        if (canEnterTile(entity)(x, y)) {
-            entity.x = x
-            entity.y = y
+
+// entities
+
+const Sheep = (x, y) => ({
+    x, y,
+    sprite: '\uD83D\uDC11',
+    state: animalStates.WANDERING,
+    hunger: 0.1,
+    t: [tiles.SAND, tiles.GRASS, tiles.FOREST, tiles.HILLS],
+    update: prev => {
+        const dx = prev.x + choose([-1, 0, 1])
+        ,     dy = prev.y + choose([-1, 0, 1])
+        const s = Sheep(x, y)
+        s.hunger = prev.hunger * 1.02
+        if (s.hunger > 0.7 && s.state === animalStates.WANDERING) {
+            s.state = animalStates.GRAZING
+        } else if (s.hunger <= 0.1 && s.state === animalStates.GRAZING) {
+            s.state = animalStates.WANDERING
         }
+        if (canEnterTile(s)(dx, dy)) {
+            s.x = dx
+            s.y = dy
+            if (island.tiles[dy][dx] === tiles.GRASS &&
+                s.state === animalStates.GRAZING)
+                s.hunger -= 0.1
+        }
+        return s
     }
-}
+})
+
 // event handling
 
 document.addEventListener('keydown', ev => {
@@ -271,7 +299,7 @@ document.addEventListener('keydown', ev => {
             camera.x += 1
         break;
     }
-    updateEntities()
+    entities = entities.map(e => e.update(e))
 })
 
 // rendering
@@ -320,9 +348,7 @@ const initialize = () => {
     generateIsland(80, 80)
     player = initializePlayer()
     centerCameraOn(player.x, player.y)
-    entities.push({x: player.x - 1, y: player.y - 1,
-                   sprite: '\uD83D\uDC11',
-                   t: [tiles.SAND, tiles.GRASS, tiles.FOREST, tiles.HILLS]})
+    entities.push(Sheep(player.x - 1, player.y - 1))
 }
 
 const update = dt => {
@@ -337,7 +363,9 @@ const render = () => {
                    (player.x - camera.x) * tileWidth + 75,
                    ((player.y - camera.y) * tileHeight + 50) + 17)
     for (const entity of entities) {
-        if (within(camera.x, camera.y, camera.w - 1, camera.h - 1, entity.x, entity.y))
+        if (within(camera.x, camera.y,
+                   camera.w - 1, camera.h - 1,
+                   entity.x, entity.y))
             stage.fillText(entity.sprite,
                            (entity.x - camera.x) * tileWidth + 75,
                            ((entity.y - camera.y) * tileHeight + 50) + 17)
