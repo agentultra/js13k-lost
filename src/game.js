@@ -198,7 +198,13 @@ const initializePlayer = () => {
                 sandTiles.push({x: i, y: j})
         }
     }
-    return choose(sandTiles)
+    const p = choose(sandTiles)
+    p.t = [tiles.SAND,
+           tiles.GRASS,
+           tiles.FOREST,
+           tiles.HILLS,
+           tiles.MOUNTAIN]
+    return p
 }
 
 const centerCameraOn = (x, y) => {
@@ -214,54 +220,52 @@ const centerCameraOn = (x, y) => {
         camera.y -= (camera.y + camera.h) - island.height
 }
 
-const canEnterTile = (x, y) => {
-    switch (island.tiles[y][x]) {
-    case tiles.DEEPWATER:
-        return false
-        break;
-    case tiles.SNOW:
-        return false
-        break;
-    default:
-        return true
-        break;
-    }
+const canEnterTile = entity => (x, y) => {
+    const tile = island.tiles[y][x]
+    return entity.t.includes(tile)
 }
 
 const updateEntities = () => {
     for (const entity of entities) {
-        entity.x += choose([-1, 0, 1])
-        entity.y += choose([-1, 0, 1])
+        const dx = choose([-1, 0, 1])
+        ,     dy = choose([-1, 0, 1])
+        ,     x = entity.x + dx
+        ,     y = entity.y + dy
+        if (canEnterTile(entity)(x, y)) {
+            entity.x = x
+            entity.y = y
+        }
     }
 }
 // event handling
 
 document.addEventListener('keydown', ev => {
+    const canPlayerEnterTile = canEnterTile(player)
     switch (ev.key) {
     case 'w':
         if (player.y > 0)
-            if (canEnterTile(player.x, player.y - 1))
+            if (canPlayerEnterTile(player.x, player.y - 1))
                 player.y -= 1
         if (player.y < (camera.y + camera.b) && camera.y > 0)
             camera.y -= 1
         break;
     case 's':
         if (player.y < island.height - 1)
-            if (canEnterTile(player.x, player.y + 1))
+            if (canPlayerEnterTile(player.x, player.y + 1))
                 player.y += 1
         if (player.y > (camera.y + camera.h) - camera.b - 1 && camera.y + camera.h < island.height)
             camera.y += 1
         break;
     case 'a':
         if (player.x > 0)
-            if (canEnterTile(player.x - 1, player.y))
+            if (canPlayerEnterTile(player.x - 1, player.y))
                 player.x -= 1
         if (player.x < (camera.x + camera.b) && camera.x > 0)
             camera.x -= 1
         break;
     case 'd':
         if (player.x < island.width - 1)
-            if (canEnterTile(player.x + 1, player.y))
+            if (canPlayerEnterTile(player.x + 1, player.y))
                 player.x += 1
         if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
             camera.x += 1
@@ -317,7 +321,8 @@ const initialize = () => {
     player = initializePlayer()
     centerCameraOn(player.x, player.y)
     entities.push({x: player.x - 1, y: player.y - 1,
-                   sprite: '\uD83D\uDC11'})
+                   sprite: '\uD83D\uDC11',
+                   t: [tiles.SAND, tiles.GRASS, tiles.FOREST, tiles.HILLS]})
 }
 
 const update = dt => {
