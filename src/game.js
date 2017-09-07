@@ -1,6 +1,6 @@
-let canvas, stage
+let canvas, stage, player, running = true
 const tileWidth = 20, tileHeight = 20
-const tiles = {
+,     tiles = {
     GRASS: 0,
     WATER: 1,
     SAND: 2,
@@ -10,10 +10,9 @@ const tiles = {
     MOUNTAIN: 6,
     SNOW: 7
 }
-const island = {tiles: [], width: 0, height: 0}
-const camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
-let player;
-let running = true
+,     island = {tiles: [], width: 0, height: 0}
+,     camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
+,     entities = []
 
 // utilities
 
@@ -228,6 +227,13 @@ const canEnterTile = (x, y) => {
         break;
     }
 }
+
+const updateEntities = () => {
+    for (const entity of entities) {
+        entity.x += choose([-1, 0, 1])
+        entity.y += choose([-1, 0, 1])
+    }
+}
 // event handling
 
 document.addEventListener('keydown', ev => {
@@ -261,6 +267,7 @@ document.addEventListener('keydown', ev => {
             camera.x += 1
         break;
     }
+    updateEntities()
 })
 
 // rendering
@@ -309,6 +316,8 @@ const initialize = () => {
     generateIsland(80, 80)
     player = initializePlayer()
     centerCameraOn(player.x, player.y)
+    entities.push({x: player.x - 1, y: player.y - 1,
+                   sprite: '\uD83D\uDC11'})
 }
 
 const update = dt => {
@@ -322,6 +331,12 @@ const render = () => {
     stage.fillText('\uD83E\uDD13',
                    (player.x - camera.x) * tileWidth + 75,
                    ((player.y - camera.y) * tileHeight + 50) + 17)
+    for (const entity of entities) {
+        if (within(camera.x, camera.y, camera.w - 1, camera.h - 1, entity.x, entity.y))
+            stage.fillText(entity.sprite,
+                           (entity.x - camera.x) * tileWidth + 75,
+                           ((entity.y - camera.y) * tileHeight + 50) + 17)
+    }
 }
 
 // main
