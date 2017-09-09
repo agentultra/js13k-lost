@@ -60,6 +60,18 @@ const randPointWithinR = r => {
             Math.floor(b * r * Math.sin(2 * Math.PI * a / b))]
 }
 
+const neighbours = (x, y) =>
+      [
+          [x, y - 1, 'N'],
+          [x + 1, y - 1, 'NE'],
+          [x + 1, y, 'E'],
+          [x + 1, y + 1, 'SE'],
+          [x, y + 1, 'S'],
+          [x - 1, y + 1, 'SW'],
+          [x - 1, y, 'W'],
+          [x - 1, y - 1, 'NW'],
+      ]
+
 // world gen
 
 const generateIsland = (width, height) => {
@@ -80,18 +92,6 @@ const generateIsland = (width, height) => {
         W: [[-1, 1], [-1, 0], [-1, -1]],
         NW: [[-1, 0], [-1, -1], [0, -1]]
     }
-
-    const neighbours = (x, y) =>
-          [
-              [x, y - 1, 'N'],
-              [x + 1, y - 1, 'NE'],
-              [x + 1, y, 'E'],
-              [x + 1, y + 1, 'SE'],
-              [x, y + 1, 'S'],
-              [x - 1, y + 1, 'SW'],
-              [x - 1, y, 'W'],
-              [x - 1, y - 1, 'NW'],
-          ]
 
     const eruptionFrontier = (x, y, dir, mapW, mapH) =>
           directions[dir].map(
@@ -238,21 +238,36 @@ const canEnterTile = entity => (x, y) => {
 
 // entities
 
-const Sheep = (x, y) => ({
+const Sheep = (x, y, state) => ({
     x, y,
     sprite: '\uD83D\uDC11',
-    state: animalStates.WANDERING,
+    state,
     hunger: 0.1,
     t: [tiles.SAND, tiles.GRASS, tiles.FOREST, tiles.HILLS],
     update: prev => {
-        const dx = prev.x + choose([-1, 0, 1])
-        ,     dy = prev.y + choose([-1, 0, 1])
-        const s = Sheep(x, y)
+        let dx, dy
+        const s = Sheep(x, y, prev.state)
         s.hunger = prev.hunger * 1.02
         if (s.hunger > 0.7 && s.state === animalStates.WANDERING) {
             s.state = animalStates.GRAZING
         } else if (s.hunger <= 0.1 && s.state === animalStates.GRAZING) {
             s.state = animalStates.WANDERING
+        }
+        if (s.state === animalStates.WANDERING) {
+            dx = prev.x + choose([-1, 0, 1])
+            dy = prev.y + choose([-1, 0, 1])
+        } else if (s.state === animalStates.GRAZING) {
+            const ns = neighbours(prev.x, prev.y)
+                  .map(([x, y]) => [x, y, island.tiles[y][x]])
+                  .filter(t => t[2] === tiles.GRASS)
+            if (ns.length > 0) {
+                const dir = choose(ns)
+                dx = dir[0]
+                dy = dir[1]
+            } else {
+                dx = prev.x + choose([-1, 0, 1])
+                dy = prev.y + choose([-1, 0, 1])
+            }
         }
         if (canEnterTile(s)(dx, dy)) {
             s.x = dx
@@ -261,6 +276,7 @@ const Sheep = (x, y) => ({
                 s.state === animalStates.GRAZING)
                 s.hunger -= 0.1
         }
+        console.log(s)
         return s
     }
 })
@@ -299,7 +315,8 @@ document.addEventListener('keydown', ev => {
             camera.x += 1
         break;
     }
-    entities = entities.map(e => e.update(e))
+    if (['w', 's', 'a', 'd'].includes(ev.key))
+        entities = entities.map(e => e.update(e))
 })
 
 // rendering
@@ -348,7 +365,7 @@ const initialize = () => {
     generateIsland(80, 80)
     player = initializePlayer()
     centerCameraOn(player.x, player.y)
-    entities.push(Sheep(player.x - 1, player.y - 1))
+    entities.push(Sheep(player.x - 1, player.y - 1, animalStates.WANDERING))
 }
 
 const update = dt => {
