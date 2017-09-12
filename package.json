@@ -1,0 +1,13 @@
+{
+  "name": "js13k2017",
+  "version": "1.0.0",
+  "description": "@agentultra's js13k games competition entry",
+  "author": "James King <james@agentultra.com>",
+  "license": "MIT",
+  "scripts": {
+      "build": "uglifyjs src/game.js -c -m --toplevel -o dist/game.js"
+  },
+  "devDependencies": {
+    "uglify-es": "^3.1.0"
+  }
+}
