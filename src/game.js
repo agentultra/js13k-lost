@@ -276,7 +276,6 @@ const Sheep = (x, y, state) => ({
                 s.state === animalStates.GRAZING)
                 s.hunger -= 0.1
         }
-        console.log(s)
         return s
     }
 })
@@ -290,32 +289,61 @@ document.addEventListener('keydown', ev => {
         if (player.y > 0)
             if (canPlayerEnterTile(player.x, player.y - 1))
                 player.y -= 1
-        if (player.y < (camera.y + camera.b) && camera.y > 0)
-            camera.y -= 1
+        break;
+    case 'q':
+        if (player.y > 0 && player.x > 0)
+            if (canPlayerEnterTile(player.x - 1, player.y - 1)) {
+                player.x--;
+                player.y--;
+            }
         break;
     case 's':
         if (player.y < island.height - 1)
             if (canPlayerEnterTile(player.x, player.y + 1))
                 player.y += 1
-        if (player.y > (camera.y + camera.h) - camera.b - 1 && camera.y + camera.h < island.height)
-            camera.y += 1
+        break;
+    case 'e':
+        if (player.y > 0 && player.x < island.width)
+            if (canPlayerEnterTile(player.x + 1, player.y - 1)) {
+                player.x++;
+                player.y--;
+            }
         break;
     case 'a':
         if (player.x > 0)
             if (canPlayerEnterTile(player.x - 1, player.y))
                 player.x -= 1
-        if (player.x < (camera.x + camera.b) && camera.x > 0)
-            camera.x -= 1
         break;
     case 'd':
         if (player.x < island.width - 1)
             if (canPlayerEnterTile(player.x + 1, player.y))
                 player.x += 1
-        if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
-            camera.x += 1
+        break;
+    case 'z':
+        if (player.x > 0 && player.y < island.height - 1)
+            if (canPlayerEnterTile(player.x - 1, player.y + 1)) {
+                player.x--;
+                player.y++;
+            }
+        break;
+    case 'c':
+        if (player.x < island.width - 1 && player.y < island.height - 1) {
+            if (canPlayerEnterTile(player.x + 1, player.y + 1)) {
+                player.x++;
+                player.y++;
+            }
+        }
         break;
     }
-    if (['w', 's', 'a', 'd'].includes(ev.key))
+    if (player.y < (camera.y + camera.b) && camera.y > 0)
+        camera.y--;
+    if (player.y > (camera.y + camera.h) - camera.b - 1 && camera.y + camera.h < island.height)
+        camera.y++;
+    if (player.x < (camera.x + camera.b) && camera.x > 0)
+        camera.x--;
+    if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
+        camera.x++;
+    if (['w', 'q', 'e', 's', 'a', 'd', 'z', 'c'].includes(ev.key))
         entities = entities.map(e => e.update(e))
 })
 
@@ -365,7 +393,32 @@ const initialize = () => {
     generateIsland(80, 80)
     player = initializePlayer()
     centerCameraOn(player.x, player.y)
-    entities.push(Sheep(player.x - 1, player.y - 1, animalStates.WANDERING))
+    const grassTiles = []
+    for (let i = 0; i < island.tiles[0].length; i++) {
+        for (let j = 0; j < island.tiles.length; j++) {
+            if (island.tiles[j][i] === tiles.GRASS)
+                grassTiles.push([i, j])
+        }
+    }
+    let numSheep = 0
+    switch (true) {
+    case grassTiles.length < 10:
+        numSheep = 3
+        break;
+    case grassTiles.length < 20:
+        numSheep = 4
+        break;
+    case grassTiles.length < 25:
+        numSheep = 5
+        break;
+    case grassTiles.length > 25:
+        numSheep = 7
+        break;
+    }
+    for (let i = 0; i < numSheep; i++) {
+        const [x, y] = choose(grassTiles)
+        entities.push(Sheep(x, y, animalStates.WANDERING))
+    }
 }
 
 const update = dt => {
