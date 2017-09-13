@@ -410,6 +410,24 @@ const StatsFrame = (x, y, w, h) => ({
         stage.strokeStyle = '#fff'
         stage.fillStyle = '#fff'
         stage.strokeRect(x, y, w, h)
+        stage.fillText(`X: ${player.x}, Y: ${player.y}`,
+                       x + 10, y + 26)
+    }
+})
+
+const MessageBox = (x, y, w, h, label, text,
+                    borderColor = '#fff', bgColor = '#000') => ({
+    x, y, w, h, label, text,
+    render: () => {
+        stage.font = '16px serif'
+        stage.strokeStyle = borderColor
+        stage.lineWidth = 2
+        stage.strokeRect(x, y, w, h)
+        stage.fillStyle = bgColor
+        stage.fillRect(x, y, w, h)
+        stage.fillStyle = '#fff'
+        stage.fillText(label, x + 15, y + 16)
+        stage.lineWidth = 1
     }
 })
 
