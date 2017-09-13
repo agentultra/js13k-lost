@@ -5,7 +5,7 @@
   "author": "James King <james@agentultra.com>",
   "license": "MIT",
   "scripts": {
-      "build": "uglifyjs src/game.js -c -m --toplevel -o dist/game.js"
+      "build": "uglifyjs src/game.js -b ascii_only=true,beautify=false -c -m --toplevel -o dist/game.js"
   },
   "devDependencies": {
     "uglify-es": "^3.1.0"
