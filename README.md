@@ -30,4 +30,4 @@ You should end up with a `game.zip` and a `dist/` directory.
 
 ### TODO
 
-- Fix uglify UTF-8 encoded glyph mangling
+- Finish the game
