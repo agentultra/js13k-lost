@@ -1,6 +1,7 @@
 let canvas
 ,   stage
 ,   player
+,   screen
 ,   running = true
 ,   entities = []
 const tileWidth = 20, tileHeight = 20
@@ -22,7 +23,7 @@ const tileWidth = 20, tileHeight = 20
     AGRESSIVE: 4
 }
 ,     island = {tiles: [], width: 0, height: 0}
-,     camera = {x: 0, y: 0, w: 30, h: 30, b: 4} // in tiles
+,     camera = {x: 0, y: 0, w: 20, h: 20, b: 4} // in tiles
 
 // utilities
 
@@ -37,12 +38,6 @@ const lerp = (v0, v1, t) => (1 - t) * v0 + t * v1
 const within = (x1, y1, w, h, x2, y2) =>
       (x1 <= x2 && x2 <= x1 + w) &&
       (y1 <= y2 && y2 <= y1 + h)
-
-const outOfBounds = (x1, y1, w1, h1,
-                     x2, y2, w2, h2,
-                     x, y) =>
-      within(x1, y1, w1, h1, x, y) &&
-      !within(x2, y2, w2, h2, x, y)
 
 const emptyArray = (width, height, fill=0) => {
     const arr = []
@@ -214,6 +209,7 @@ const initializePlayer = () => {
            tiles.FOREST,
            tiles.HILLS,
            tiles.MOUNTAIN]
+    p.hunger = 0.01
     return p
 }
 
@@ -348,6 +344,7 @@ document.addEventListener('keydown', ev => {
 })
 
 // rendering
+
 const renderIsland = (screenX, screenY) => {
     for (let i = 0; i < camera.w; i++) {
         for (let j = 0; j < camera.h; j++) {
@@ -384,6 +381,50 @@ const renderIsland = (screenX, screenY) => {
     }
 }
 
+// widgets
+
+const GameWindow = (x, y) => ({
+    x,
+    y,
+    render: () => {
+        renderIsland(x, y)
+        stage.font = '16px serif'
+        stage.fillText('\uD83E\uDD13',
+                       (player.x - camera.x) * tileWidth + x,
+                       ((player.y - camera.y) * tileHeight + y) + 17)
+        for (const entity of entities) {
+            if (within(camera.x, camera.y,
+                       camera.w - 1, camera.h - 1,
+                       entity.x, entity.y))
+                stage.fillText(entity.sprite,
+                               (entity.x - camera.x) * tileWidth + x,
+                               ((entity.y - camera.y) * tileHeight + y) + 17)
+        }
+    }
+})
+
+const StatsFrame = (x, y, w, h) => ({
+    x, y, w, h,
+    render: () => {
+        stage.font = '16px serif'
+        stage.strokeStyle = '#fff'
+        stage.fillStyle = '#fff'
+        stage.strokeRect(x, y, w, h)
+    }
+})
+
+// screens
+
+const Screen = (...widgets) => ({
+    widgets
+})
+
+const GameScreen = Screen(
+    GameWindow(20, 20),
+    StatsFrame(40 + camera.w * tileWidth,
+               20, 200, camera.h * tileHeight)
+)
+
 // game
 const initialize = () => {
     canvas = document.getElementById('stage')
@@ -419,6 +460,7 @@ const initialize = () => {
         const [x, y] = choose(grassTiles)
         entities.push(Sheep(x, y, animalStates.WANDERING))
     }
+    screen = GameScreen
 }
 
 const update = dt => {
@@ -427,19 +469,7 @@ const update = dt => {
 const render = () => {
     stage.fillStyle = '#000'
     stage.fillRect(0, 0, window.innerWidth, window.innerHeight)
-    renderIsland(75, 50)
-    stage.font = '16px serif'
-    stage.fillText('\uD83E\uDD13',
-                   (player.x - camera.x) * tileWidth + 75,
-                   ((player.y - camera.y) * tileHeight + 50) + 17)
-    for (const entity of entities) {
-        if (within(camera.x, camera.y,
-                   camera.w - 1, camera.h - 1,
-                   entity.x, entity.y))
-            stage.fillText(entity.sprite,
-                           (entity.x - camera.x) * tileWidth + 75,
-                           ((entity.y - camera.y) * tileHeight + 50) + 17)
-    }
+    screen.widgets.forEach(w => w.render())
 }
 
 // main
