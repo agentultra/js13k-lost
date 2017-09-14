@@ -413,8 +413,8 @@ const StatsFrame = (x, y, w, h) => ({
         stage.strokeStyle = '#fff'
         stage.fillStyle = '#fff'
         stage.strokeRect(x, y, w, h)
-        stage.fillText(`X: ${player.x}, Y: ${player.y}`,
-                       x + 10, y + 26)
+        stage.fillText('X: ' + player.x, x + 10, y + 26)
+        stage.fillText('Y: ' + player.y, x + 10, y + 46)
     }
 })
 
