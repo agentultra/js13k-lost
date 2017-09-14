@@ -339,8 +339,10 @@ document.addEventListener('keydown', ev => {
         camera.x--;
     if (player.x > (camera.x + camera.w) - camera.b - 1 && camera.x + camera.w < island.width)
         camera.x++;
-    if (['w', 'q', 'e', 's', 'a', 'd', 'z', 'c'].includes(ev.key))
+    if (['w', 'q', 'e', 's', 'a', 'd', 'z', 'c'].includes(ev.key)) {
         entities = entities.map(e => e.update(e))
+        ev.preventDefault()
+    }
 })
 
 // rendering
