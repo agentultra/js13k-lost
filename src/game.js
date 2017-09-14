@@ -1,3 +1,4 @@
+(function() {
 let canvas
 ,   stage
 ,   player
@@ -507,3 +508,4 @@ const loop = now => {
     }
 }
 loop(lastFrame)
+})()
