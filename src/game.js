@@ -29,7 +29,7 @@ const tileWidth = 20, tileHeight = 20
 // utilities
 
 const randRange = (min, max) =>
-      Math.floor(Math.random() * max) + min
+      0|(Math.random() * max) + min
 
 const choose = list =>
       list[randRange(0, list.length)]
@@ -52,8 +52,8 @@ const randPointWithinR = r => {
     let a = Math.random()
     ,   b = Math.random()
     if (b < a) [a, b] = [b, a]
-    return [Math.floor(b * r * Math.cos(2 * Math.PI * a / b)),
-            Math.floor(b * r * Math.sin(2 * Math.PI * a / b))]
+    return [0|(b * r * Math.cos(2 * Math.PI * a / b)),
+            0|(b * r * Math.sin(2 * Math.PI * a / b))]
 }
 
 const neighbours = (x, y) =>
@@ -135,8 +135,8 @@ const generateIsland = (width, height) => {
     island.tiles = emptyArray(width, height, tiles.DEEPWATER)
 
     const heightMap = emptyArray(width, height, -0.3)
-    const [centerX, centerY] = [Math.floor(width / 2),
-                                Math.floor(height / 2)]
+    const [centerX, centerY] = [0|(width / 2),
+                                0|(height / 2)]
     const volcanoes = []
     for (let n = 0; n < randRange(6, 8); n++) {
         const [rx, ry] = randPointWithinR(width / 3.5)
@@ -215,8 +215,8 @@ const initializePlayer = () => {
 }
 
 const centerCameraOn = (x, y) => {
-    camera.x = Math.floor(x - (camera.w / 2))
-    camera.y = Math.floor(y - (camera.h / 2))
+    camera.x = 0|(x - (camera.w / 2))
+    camera.y = 0|(y - (camera.h / 2))
     if (camera.x + camera.w > island.width)
         camera.x -= (camera.x + camera.w) - island.width
     if (camera.x < 0)
@@ -276,6 +276,10 @@ const Sheep = (x, y, state) => ({
         return s
     }
 })
+
+    const playerHunger = player => {
+
+    }
 
 // event handling
 
@@ -415,6 +419,8 @@ const StatsFrame = (x, y, w, h) => ({
         stage.strokeRect(x, y, w, h)
         stage.fillText('X: ' + player.x, x + 10, y + 26)
         stage.fillText('Y: ' + player.y, x + 10, y + 46)
+        stage.fillText('Hunger: ' + playerHunger(player),
+                       x + 10, y + 66)
     }
 })
 
